@@ -1,0 +1,7 @@
+
+SqlVerbindung	: Data Source=.\SQLEXPRESS;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False
+DataBase		: JgLogDaten
+
+FtpHost			: jgdata.de
+FtpUsername		: 116635f89936u1	
+FtpKennwort		: _Fx40dl_ 

@@ -37,9 +37,20 @@ namespace JgBackUp
             return;
         }
 
-        public static void Ausgabe(ConsoleColor farbe, string text)
+        public static void Ausgabe(ConsoleColor farbe, string text, Exception ex = null)
         {
             Console.ForegroundColor = farbe;
+
+            if (ex != null)
+            {
+                text = " Grund: " + ex.Message;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                    text += " | " + ex.Message;
+                }
+            }
+
             Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
         }
     }

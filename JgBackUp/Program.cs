@@ -24,12 +24,26 @@ namespace JgBackUp
                     pause = true;
             }
 
-            Helper.Ausgabe(ConsoleColor.White, "Optionen laden");
-
             var pfad = AppDomain.CurrentDomain.BaseDirectory;
             var pfadDaten = pfad + "Daten";
             var dateiDb = pfadDaten + @"\JgBackUp.bak";
             var tagAkt = DateTime.Now.DayOfWeek.ToString().Substring(0, 2);
+
+            if (!Directory.Exists(pfadDaten))
+            {
+                Helper.Ausgabe(ConsoleColor.Yellow, "Erstelle Directory " + pfadDaten);
+                try
+                {
+                    Directory.CreateDirectory(pfadDaten);
+                }
+                catch (Exception ex)
+                {
+                    Helper.Ausgabe(ConsoleColor.Red, "Fehler beim erstellen " + dateiDb, ex);
+                    Environment.Exit(1);
+                }
+            }
+
+            Helper.Ausgabe(ConsoleColor.White, "Optionen laden");
 
             var tagAlt = "";
             var dateiTag = pfadDaten + @"\MerkeTag.bin";
@@ -39,14 +53,24 @@ namespace JgBackUp
             {
                 File.WriteAllText(dateiTag, tagAkt);
                 if (File.Exists(dateiDb))
-                    File.Delete(dateiDb);
+                {
+                    try
+                    {
+                        File.Delete(dateiDb);
+                    }
+                    catch (Exception ex)
+                    {
+                        Helper.Ausgabe(ConsoleColor.Red, "Fehler Löschen von " + dateiDb, ex);
+                        Environment.Exit(1);
+                    }
+                }
             }
 
             var dateiOpt = pfad + "opt.txt";
             if (!File.Exists(dateiOpt))
             {
                 Helper.Ausgabe(ConsoleColor.Red, dateiOpt + " wurde nicht gefunden.");
-                Environment.Exit(0);
+                Environment.Exit(1);
             }
             var optionen = await File.ReadAllLinesAsync(pfad + "opt.txt");
             var opt = new Dictionary<string, string>();
@@ -58,16 +82,29 @@ namespace JgBackUp
                     opt.Add(feld[0].Trim().ToLower(), feld[1].Trim());
             }
 
-            if (!Directory.Exists(pfadDaten))
-                Directory.CreateDirectory(pfadDaten);
-
             Helper.Ausgabe(ConsoleColor.Yellow, "Beginne DB Update");
 
-            Helper.Backup(opt["database"], opt["sqlverbindung"], dateiDb);
+            try
+            {
+                Helper.Backup(opt["database"], opt["sqlverbindung"], dateiDb);
+            }
+            catch (Exception ex)
+            {
+                Helper.Ausgabe(ConsoleColor.Red, "Fehler bei DB Backup. Grund: ", ex);
+                Environment.Exit(1);
+            }
 
             Helper.Ausgabe(ConsoleColor.White, "Datei kopieren");
 
-            File.Copy(dateiDb, $"{pfadDaten}\\{opt["database"]}_{tagAkt}", true);
+            try
+            {
+                File.Copy(dateiDb, $"{pfadDaten}\\{opt["database"]}_{tagAkt}", true);
+            }
+            catch (Exception ex)
+            {
+                Helper.Ausgabe(ConsoleColor.Red, "Fehler beim kopieren. Grund: ", ex);
+                Environment.Exit(1);
+            }
 
             Helper.Ausgabe(ConsoleColor.White, "Upload auf FTP Server");
 
